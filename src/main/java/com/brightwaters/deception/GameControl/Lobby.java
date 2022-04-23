@@ -32,7 +32,6 @@ public class Lobby {
         ArrayList<Player> players = state.getPublicState().getPlayers();
         for (Player player : players) {
             if (player.getUsername().equals(event.getPlayer())) {
-                System.out.println(player.getUsername() + "   DFSADJAKSLDJASKLDJKLASDJ " + event.getPlayer());
                 return null;
             }
         }

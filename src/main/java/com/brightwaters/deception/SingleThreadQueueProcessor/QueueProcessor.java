@@ -106,7 +106,7 @@ public class QueueProcessor extends Thread {
         return gameState;
     }
 
-    // get the gamestate from memory and convert it to java object
+    // save the gamestate in memory
     public GameStateObj saveGameState(GameStateObj gameState) {
         GameState gameStateJson = new GameState();
         gameStateJson.setGameId(gameState.getPublicState().getGameId());
