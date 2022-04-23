@@ -51,8 +51,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers(HttpMethod.GET, "/cleaner").permitAll()
         .antMatchers(HttpMethod.GET, "/events/joinGame/{gameId}/{playerName}").permitAll()
         .antMatchers(HttpMethod.GET, "/events/startGame/{gameId}/{playerName}").permitAll()
-        .antMatchers(HttpMethod.GET, "/events/test/{s}").permitAll()
-
+        .antMatchers(HttpMethod.GET, "/events/selectCards/{gameId}/{playerName}/{clueCard}/{weaponCard}").permitAll()
+        .antMatchers(HttpMethod.GET, "/events/startGame/{gameId}/{playerName}").permitAll()
+        .antMatchers(HttpMethod.GET, "/events/startGame/{gameId}/{playerName}").permitAll()
+        .antMatchers(HttpMethod.GET, "/events/startGame/{gameId}/{playerName}").permitAll()
+        .antMatchers(HttpMethod.GET, "/events/startGame/{gameId}/{playerName}").permitAll()
+        .antMatchers(HttpMethod.GET, "/events/startGame/{gameId}/{playerName}").permitAll()
         
         .anyRequest().authenticated()
         .and()

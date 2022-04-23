@@ -17,6 +17,8 @@ public class PrivateGameState {
     private String murdererPlayer;
     private String murderWeaponName;
     private String murderClueName;
+    private int submittedCardsCount;
+    
     public ArrayList<HintCard> getHintCardsDeck() {
         return hintCardsDeck;
     }
@@ -64,6 +66,12 @@ public class PrivateGameState {
     }
     public void setMurderClueName(String murderClueName) {
         this.murderClueName = murderClueName;
+    }
+    public int getSubmittedCardsCount() {
+        return submittedCardsCount;
+    }
+    public void setSubmittedCardsCount(int submittedCardsCount) {
+        this.submittedCardsCount = submittedCardsCount;
     }
    
     

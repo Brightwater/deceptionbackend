@@ -10,6 +10,7 @@ import com.brightwaters.deception.model.h2.EventQueueObj;
 import com.brightwaters.deception.model.h2.GameState;
 import com.brightwaters.deception.model.h2.GameStateObj;
 import com.brightwaters.deception.model.h2.PublicGameState;
+import com.brightwaters.deception.model.h2.SelectCardEvent;
 import com.brightwaters.deception.model.h2.SetupGameEvent;
 import com.brightwaters.deception.repository.h2.EventQueueRepository;
 import com.brightwaters.deception.repository.h2.GameStateRepository;
@@ -23,7 +24,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -116,6 +116,32 @@ public class EventController {
         event.setGameId(UUID.fromString(s));
         event.setEventTs(new Timestamp(System.currentTimeMillis()));
         event.setEventType("startGame");
+        eventRepos.save(event);
+    }
+
+    // event for a non forensic player to select their cards
+    @GetMapping(value="/events/selectCards/{gameId}/{playerName}/{clueCard}/{weaponCard}")
+    public void selectCards(@PathVariable("gameId") String s, @PathVariable("playerName") String playerName,
+    @PathVariable("clueCard") String clueCard, @PathVariable("weaponCard") String weaponCard) {
+        EventQueueObj event = new EventQueueObj();
+        SelectCardEvent cardEvent = new SelectCardEvent();
+        cardEvent.setClueCard(clueCard);
+        cardEvent.setWeaponCard(weaponCard);
+
+        event.setPlayer(playerName);
+        event.setGameId(UUID.fromString(s));
+        event.setEventTs(new Timestamp(System.currentTimeMillis()));
+        event.setEventType("selectCards");
+
+        ObjectMapper mapper = new ObjectMapper();
+        String json = "";
+        try {
+            json = mapper.writeValueAsString(cardEvent);
+        } catch (JsonProcessingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        event.setJsonEvent(json);
         eventRepos.save(event);
     }
 

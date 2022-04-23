@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 
+import com.brightwaters.deception.GameControl.Game;
 import com.brightwaters.deception.GameControl.Lobby;
 import com.brightwaters.deception.model.h2.EventQueueObj;
 import com.brightwaters.deception.model.h2.GameState;
@@ -34,6 +35,9 @@ public class QueueProcessor extends Thread {
     @Autowired
     Lobby lobby;
 
+    @Autowired
+    Game game;
+
     
     // process ALL game events
     // in a single thread to make sure
@@ -49,8 +53,8 @@ public class QueueProcessor extends Thread {
             {
                 Thread.currentThread().interrupt();
             }
-
-            // read all events from queue in the orer they occurred
+            try {
+                // read all events from queue in the orer they occurred
             ArrayList<EventQueueObj> eventQueue = (ArrayList<EventQueueObj>) eventRepos.retrieveEventQueue();
             if (eventQueue.size() > 0) {
                 for (EventQueueObj event : eventQueue) {
@@ -73,6 +77,16 @@ public class QueueProcessor extends Thread {
                         saveGameState(gameState);
                         System.out.println(event.getEventTs() + "| EVENT " + event.getEventType() + " for player " + event.getPlayer());
                     }
+                    else if (event.getEventType().equals("selectCards")) {
+                        GameStateObj gameState = serializeGameState(event.getGameId());
+                        gameState = game.selectCards(event, gameState);
+                        if (gameState == null) {
+                            continue;
+                        }
+                        gameState = game.checkAllCardsSubmitted(event, gameState);
+                        saveGameState(gameState);
+                        System.out.println(event.getEventTs() + "| EVENT " + event.getEventType() + " for player " + event.getPlayer());
+                    }
                     else {
                         System.out.println(event.getEventTs() + "| EVENT " + event.getEventType());
                     }
@@ -80,6 +94,10 @@ public class QueueProcessor extends Thread {
                 }
                 eventRepos.deleteAll(eventQueue);
             }
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
+            
         }
     }
 

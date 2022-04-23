@@ -20,30 +20,38 @@ import org.springframework.stereotype.Component;
 public class Lobby {
 
     public GameStateObj addPlayer(EventQueueObj event, GameStateObj state) {
-        Player p = new Player();
-        p.setUsername(event.getPlayer());
-        p.setPlayerNumber(state.getPublicState().getPlayerCount() + 1);
-        state.getPublicState().setPlayerCount(state.getPublicState().getPlayerCount() + 1);
-        p.setWeaponCards(new ArrayList<WeaponCard>());
-        p.setClueCards(new ArrayList<ClueCard>());
-        PlayerVoted pVoted= new PlayerVoted();
-        pVoted.setVoted(false);
-        p.setVoted(pVoted);
-        ArrayList<Player> players = state.getPublicState().getPlayers();
-        for (Player player : players) {
-            if (player.getUsername().equals(event.getPlayer())) {
-                return null;
+        try {
+            Player p = new Player();
+            p.setUsername(event.getPlayer());
+            p.setPlayerNumber(state.getPublicState().getPlayerCount() + 1);
+            state.getPublicState().setPlayerCount(state.getPublicState().getPlayerCount() + 1);
+            p.setWeaponCards(new ArrayList<WeaponCard>());
+            p.setClueCards(new ArrayList<ClueCard>());
+            PlayerVoted pVoted= new PlayerVoted();
+            pVoted.setVoted(false);
+            p.setVoted(pVoted);
+            ArrayList<Player> players = state.getPublicState().getPlayers();
+            for (Player player : players) {
+                if (player.getUsername().equals(event.getPlayer())) {
+                    return null;
+                }
             }
+            players.add(p);
+            state.getPublicState().setPlayers(players);
+    
+            return state;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
-        players.add(p);
-        state.getPublicState().setPlayers(players);
-
-        return state;
+       
     }
 
     // determine who the forens is
     // add the number of roles
     // shuffle the roles
+    // determine who murderer is
+    // deal the weapon and clue cards to each player
     public GameStateObj startGame(EventQueueObj event, GameStateObj state) {
         // determine forens
         String firstPlayer = state.getPublicState().getPlayers().get(0).getUsername();
@@ -51,7 +59,7 @@ public class Lobby {
         && event.getPlayer().equals(firstPlayer)) {
             System.out.println("Correct conditions");
             Random random = new Random();
-            int index = random.nextInt(state.getPublicState().getPlayerCount());
+            int index = random.nextInt(state.getPublicState().getPlayerCount()-1);
             Player forens = state.getPublicState().getPlayers().get(index);
             state.getPublicState().setForensicScientistPlayer(forens.getUsername());
             ArrayList<String> rolesLeft = state.getPrivateState().getRolesLeft();
@@ -65,6 +73,19 @@ public class Lobby {
             state.getPrivateState().setRolesLeft(rolesLeft);
             state.getPublicState().setState("Pregame");
             ArrayList<Player> players = state.getPublicState().getPlayers();
+
+            // select murderer
+            Boolean murdererCouldBeForens = true;
+            while (murdererCouldBeForens) {
+                int index2 = random.nextInt(state.getPublicState().getPlayerCount()-1);
+                Player murderer = state.getPublicState().getPlayers().get(index2);
+                String murdererName = murderer.getUsername();
+                if (!murdererName.equals(forens.getUsername())) {
+                    murdererCouldBeForens = false;
+                    state.getPrivateState().setMurdererPlayer(state.getPublicState().getPlayers().get(index2).getUsername());
+                }
+            }
+            
 
             String forensName = forens.getUsername();
             // give the players cards
@@ -93,7 +114,7 @@ public class Lobby {
             }
 
             state.getPublicState().setPlayers(players);
-
+            
             return state;
         }
         
