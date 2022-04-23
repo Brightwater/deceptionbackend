@@ -1,0 +1,48 @@
+{
+    "gameId": "jfiow3jr89u328rt9gnf",
+    "forens": "Jax",
+    "cardCount": 6,
+    "murderWeaponName": "Gas",
+    "murderClueName": "Basketball",
+    "hintCardsDeck": [
+        {
+
+        }, 
+        {}
+
+    ],
+    "players": [
+        {
+            "name": "Courtney",
+            "playerNumber": 1,
+            "role": "Murderer",
+            "weaponCards": [
+                {
+                    "name": "Gas",
+                    "type": "poison",
+                    "susVotes": [
+                        "Jeremiah",
+                        "Courtney"
+                    ]
+                }
+            ],
+            "clueCards": [
+                {
+                    "name": "Basketball",
+                    "type": "Whatever",
+                    "susVotes": 0
+                }
+            ],
+            "voted": {
+                "clue": "Bat",
+                "weapon": "bottle"
+            },
+            "selectedW": "blahblah",
+            "selectedC": "dfijisdfisd"
+        },
+        {
+            "name": "Jeremiah",
+            "role": "murderer"
+        }
+    ]
+}
