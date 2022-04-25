@@ -114,7 +114,7 @@ public class Lobby {
                 }
             }
             players.remove(forensMove);
-            players.add(forensMove);
+            players.add(forensMove); 
             state.getPublicState().setPlayers(players);
             
             return state;
