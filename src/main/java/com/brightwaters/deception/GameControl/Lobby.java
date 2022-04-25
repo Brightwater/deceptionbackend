@@ -86,12 +86,13 @@ public class Lobby {
                 }
             }
             
-
+            Player forensMove = null;
             String forensName = forens.getUsername();
             // give the players cards
             for (Player player : players) {
                 // don't give the forens cards
                 if (player.getUsername().equals(forensName)) {
+                    forensMove = player;
                     continue;
                 }
 
@@ -112,7 +113,8 @@ public class Lobby {
                     player.setWeaponCards(weaponCards);
                 }
             }
-
+            players.remove(forensMove);
+            players.add(forensMove);
             state.getPublicState().setPlayers(players);
             
             return state;
