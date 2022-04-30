@@ -162,20 +162,31 @@ public class Game {
                 
                 try {
                     selectCard = mapper.readValue(event.getJsonEvent(), SelectHintCardEvent.class);
-                    System.out.println(selectCard.getCardName());
-                    System.out.println(selectCard.getCardType());
-                    System.out.println(selectCard.getCurrentlySelectedOption());
 
                     // need to validate these options
                     if (selectCard.getCardType().equals("death")) {
-                        state.getPublicState().setSelectedDeathMethod(selectCard.getCurrentlySelectedOption());
-                        System.out.println("set death");
+                        // validate death
+                        for (String death : state.getPublicState().getKillMethods()) {
+                            if (death.equals(state.getPublicState().getKillMethods().get(selectCard.getCurrentlySelectedOption()))) {
+                                state.getPublicState().setSelectedDeathMethod(selectCard.getCurrentlySelectedOption());
+                                System.out.println("set death");
+                                break;
+                            }
+                        }
+                        
                     }
                     else if (selectCard.getCardType().equals("location")) {
-                        state.getPublicState().setSelectedLocation(selectCard.getCurrentlySelectedOption());
-                        System.out.println("set loc");
+                        // validate location
+                        for (String location : state.getPublicState().getLocations()) {
+                            if (location.equals(state.getPublicState().getLocations().get(selectCard.getCurrentlySelectedOption()))) {
+                                state.getPublicState().setSelectedLocation(selectCard.getCurrentlySelectedOption());
+                                System.out.println("set loc");
+                                break;
+                            }
+                        }
                     }
                     else {
+                        // validate hint
                         for (HintCard card: state.getPublicState().getHintCardsInPlay()) {
                             if (card.getName().equals(selectCard.getCardName())) {
                                 card.setCurrentlySelectedOption(selectCard.getCurrentlySelectedOption());
@@ -184,6 +195,7 @@ public class Game {
                             }
                         }
                     }
+
                     return state;
                 } catch (Exception e) {
                     // TODO Auto-generated catch block
