@@ -25,7 +25,7 @@ public class ExpiredGameCleaner {
         for (GameState state: games) {
             Long ts = state.getLastUpdatedTs().toInstant().toEpochMilli();
             Long difference = now - ts;
-            if (difference >= 3600000L) {
+            if (difference >= 36000000L) {
                 System.out.println(new Timestamp(System.currentTimeMillis()) + " | Game: " + state.getGameId() + " expired");
                 gameRepos.delete(state);
             }
