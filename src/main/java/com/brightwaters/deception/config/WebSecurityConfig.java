@@ -52,12 +52,16 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers(HttpMethod.GET, "/events/joinGame/{gameId}/{playerName}").permitAll()
         .antMatchers(HttpMethod.GET, "/events/startGame/{gameId}/{playerName}").permitAll()
         .antMatchers(HttpMethod.GET, "/events/selectCards/{gameId}/{playerName}/{clueCard}/{weaponCard}").permitAll()
+        .antMatchers(HttpMethod.GET, "/events/selectHintCard/{gameId}/{playerName}/{cardType}/{cardName}/{selected}").permitAll()
+        .antMatchers(HttpMethod.GET, "/events/submitHintCard/{gameId}/{playerName}").permitAll()
+        .antMatchers(HttpMethod.GET, "/revealRole/{gameId}/{playerName}").permitAll()
+        .antMatchers(HttpMethod.GET, "/revealMurderer/{gameId}/{playerName}").permitAll()
         .antMatchers(HttpMethod.GET, "/events/startGame/{gameId}/{playerName}").permitAll()
         .antMatchers(HttpMethod.GET, "/events/startGame/{gameId}/{playerName}").permitAll()
         .antMatchers(HttpMethod.GET, "/events/startGame/{gameId}/{playerName}").permitAll()
         .antMatchers(HttpMethod.GET, "/events/startGame/{gameId}/{playerName}").permitAll()
         .antMatchers(HttpMethod.GET, "/events/startGame/{gameId}/{playerName}").permitAll()
-        
+
         .anyRequest().authenticated()
         .and()
         .addFilter(new AuthenticationFilter(authenticationManager()))
