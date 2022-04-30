@@ -52,6 +52,13 @@ public class SetupGame {
         ArrayList<WeaponCard> weaponCards = (ArrayList<WeaponCard>) weaponRepos.findAllCards();
         ArrayList<Location> locationDeck = (ArrayList<Location>) locationRepos.findAllCards();
 
+        for (ClueCard clueCard : clueCards) {
+            clueCard.setSusVotes(new ArrayList<>());
+        }
+        for (WeaponCard weaponCard : weaponCards) {
+            weaponCard.setSusVotes(new ArrayList<>());
+        }
+
         // initialize game state
         GameState gameStateJson = new GameState();
         GameStateObj gameState = new GameStateObj();
@@ -73,9 +80,9 @@ public class SetupGame {
         killMethods.add("Suffocation");
         killMethods.add("Severe Injury");
         killMethods.add("Loss of Blood");
-        killMethods.add("Illness/Disease");
+        killMethods.add("Illness or Disease");
         killMethods.add("Poisoning");
-        killMethods.add("Accident");
+        killMethods.add("Accident or Arson");
         publicGameState.setKillMethods(killMethods);
         ArrayList<String> locations = new ArrayList<>();
         publicGameState.setLocations(locations);

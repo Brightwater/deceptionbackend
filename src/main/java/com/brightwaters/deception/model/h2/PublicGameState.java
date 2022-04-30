@@ -15,6 +15,8 @@ public class PublicGameState {
     private ArrayList<HintCard> hintCardsInPlay;
     private ArrayList<Player> players;
     private String state;
+    private int selectedLocation;
+    private int selectedDeathMethod;
     
     public UUID getGameId() {
         return gameId;
@@ -70,8 +72,18 @@ public class PublicGameState {
     public void setState(String state) {
         this.state = state;
     }
+    public int getSelectedLocation() {
+        return selectedLocation;
+    }
+    public void setSelectedLocation(int selectedLocation) {
+        this.selectedLocation = selectedLocation;
+    }
+    public int getSelectedDeathMethod() {
+        return selectedDeathMethod;
+    }
+    public void setSelectedDeathMethod(int selectedDeathMethod) {
+        this.selectedDeathMethod = selectedDeathMethod;
+    }
     
-    
-
     
 }

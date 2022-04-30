@@ -38,6 +38,13 @@ public class WeaponCard {
     private String imageUrl;
     private String killMethod;
     private String name;
+    @Type(type = "list-array")
+    @Column(
+        name = "sus_votes",
+        columnDefinition = "text[]"
+    )
+    private ArrayList<String> susVotes;
+    private String belongsTo;
     public Long getId() {
         return id;
     }
@@ -74,6 +81,19 @@ public class WeaponCard {
     public void setName(String name) {
         this.name = name;
     }
+    public ArrayList<String> getSusVotes() {
+        return susVotes;
+    }
+    public void setSusVotes(ArrayList<String> susVotes) {
+        this.susVotes = susVotes;
+    }
+    public String getBelongsTo() {
+        return belongsTo;
+    }
+    public void setBelongsTo(String belongsTo) {
+        this.belongsTo = belongsTo;
+    }
+
     
     
     

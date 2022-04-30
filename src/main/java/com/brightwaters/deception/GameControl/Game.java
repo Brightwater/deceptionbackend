@@ -6,7 +6,10 @@ import com.brightwaters.deception.model.h2.EventQueueObj;
 import com.brightwaters.deception.model.h2.GameStateObj;
 import com.brightwaters.deception.model.h2.Player;
 import com.brightwaters.deception.model.h2.SelectCardEvent;
+import com.brightwaters.deception.model.h2.SelectHintCardEvent;
 import com.brightwaters.deception.model.postgres.ClueCard;
+import com.brightwaters.deception.model.postgres.HintCard;
+import com.brightwaters.deception.model.postgres.Location;
 import com.brightwaters.deception.model.postgres.WeaponCard;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -119,7 +122,24 @@ public class Game {
                 for (Player p : state.getPublicState().getPlayers()) {
                     p.getVoted().setVoted(false);
                 }
-                state.getPublicState().setState("Round1Pre");
+                // load locations
+                for (int i = 0; i < 6; i++) {
+                    Location location = state.getPrivateState().getLocationDeck().get(0);
+                    state.getPrivateState().getLocationDeck().remove(location);
+                    state.getPublicState().getLocations().add(location.getName());
+                }
+
+                // load hint cards
+                for (int i = 0; i < 4; i++) {
+                    HintCard hintCard = state.getPrivateState().getHintCardsDeck().get(0);
+                    state.getPrivateState().getHintCardsDeck().remove(hintCard);
+                    hintCard.setCurrentlySelectedOption(-1);
+                    state.getPublicState().getHintCardsInPlay().add(hintCard);
+                }
+
+                state.getPublicState().setSelectedDeathMethod(-1);
+                state.getPublicState().setSelectedLocation(-1);
+                state.getPublicState().setState("Round1pre");
             }
             
             return state;
@@ -130,5 +150,79 @@ public class Game {
         
     }
 
+    public GameStateObj round1PreSelectHint(EventQueueObj event, GameStateObj state) {
+        try {
+            if (state.getPublicState().getState().equals("Round1pre") 
+            && event.getPlayer().equals(state.getPublicState().getForensicScientistPlayer())) {
+                
+                ObjectMapper mapper = new ObjectMapper();
+                // since the gamestate is stored as json we need to convert it
+                SelectHintCardEvent selectCard = new SelectHintCardEvent();
+                
+                
+                try {
+                    selectCard = mapper.readValue(event.getJsonEvent(), SelectHintCardEvent.class);
+                    System.out.println(selectCard.getCardName());
+                    System.out.println(selectCard.getCardType());
+                    System.out.println(selectCard.getCurrentlySelectedOption());
+
+                    // need to validate these options
+                    if (selectCard.getCardType().equals("death")) {
+                        state.getPublicState().setSelectedDeathMethod(selectCard.getCurrentlySelectedOption());
+                        System.out.println("set death");
+                    }
+                    else if (selectCard.getCardType().equals("location")) {
+                        state.getPublicState().setSelectedLocation(selectCard.getCurrentlySelectedOption());
+                        System.out.println("set loc");
+                    }
+                    else {
+                        for (HintCard card: state.getPublicState().getHintCardsInPlay()) {
+                            if (card.getName().equals(selectCard.getCardName())) {
+                                card.setCurrentlySelectedOption(selectCard.getCurrentlySelectedOption());
+                                System.out.println("set hint");
+                                break;
+                            }
+                        }
+                    }
+                    return state;
+                } catch (Exception e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } 
+            } else {
+                return null;
+            }
+            
+            return null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public GameStateObj round1PreSubmitHint(EventQueueObj event, GameStateObj state) {
+        try {
+            if (state.getPublicState().getState().equals("Round1pre") 
+            && event.getPlayer().equals(state.getPublicState().getForensicScientistPlayer())) {
+                for (HintCard hintCard : state.getPublicState().getHintCardsInPlay()) {
+                    if (hintCard.getCurrentlySelectedOption() == -1) {
+                        return null;
+                    }
+                }
+                if (state.getPublicState().getSelectedDeathMethod() == -1 || state.getPublicState().getSelectedLocation() == -1) {
+                    return null;
+                }
+
+                state.getPublicState().setState("Round1");
+                return state;
+            } else {
+                return null;
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
 }

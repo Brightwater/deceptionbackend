@@ -87,6 +87,25 @@ public class QueueProcessor extends Thread {
                         saveGameState(gameState);
                         System.out.println(event.getEventTs() + "| EVENT " + event.getEventType() + " for player " + event.getPlayer());
                     }
+                    else if (event.getEventType().equals("selectCardForens")) {
+                        GameStateObj gameState = serializeGameState(event.getGameId());
+                        gameState = game.round1PreSelectHint(event, gameState);
+                        if (gameState == null) {
+                            System.out.println("selectForens error");
+                            continue;
+                        }
+                        saveGameState(gameState);
+                        System.out.println(event.getEventTs() + "| EVENT " + event.getEventType() + " for player " + event.getPlayer());
+                    }
+                    else if (event.getEventType().equals("submitCardsForens")) {
+                        GameStateObj gameState = serializeGameState(event.getGameId());
+                        gameState = game.round1PreSubmitHint(event, gameState);
+                        if (gameState == null) {
+                            continue;
+                        }
+                        saveGameState(gameState);
+                        System.out.println(event.getEventTs() + "| EVENT " + event.getEventType() + " for player " + event.getPlayer());
+                    }
                     else {
                         System.out.println(event.getEventTs() + "| EVENT " + event.getEventType());
                     }

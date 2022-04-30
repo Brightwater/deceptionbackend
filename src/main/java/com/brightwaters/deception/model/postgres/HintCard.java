@@ -41,7 +41,8 @@ public class HintCard {
         columnDefinition = "text[]"
     )
     private ArrayList<String> tags;
-
+    private int currentlySelectedOption;
+    
     public Long getId() {
         return Id;
     }
@@ -66,9 +67,13 @@ public class HintCard {
     public void setTags(ArrayList<String> tags) {
         this.tags = tags;
     }
-   
+    public int getCurrentlySelectedOption() {
+        return currentlySelectedOption;
+    }
+    public void setCurrentlySelectedOption(int currentlySelectedOption) {
+        this.currentlySelectedOption = currentlySelectedOption;
+    }
     
-   
     
     
 }

@@ -9,8 +9,11 @@ import com.brightwaters.deception.GameControl.SetupGame;
 import com.brightwaters.deception.model.h2.EventQueueObj;
 import com.brightwaters.deception.model.h2.GameState;
 import com.brightwaters.deception.model.h2.GameStateObj;
+import com.brightwaters.deception.model.h2.Player;
 import com.brightwaters.deception.model.h2.PublicGameState;
+import com.brightwaters.deception.model.h2.RevealMurdererEvent;
 import com.brightwaters.deception.model.h2.SelectCardEvent;
+import com.brightwaters.deception.model.h2.SelectHintCardEvent;
 import com.brightwaters.deception.model.h2.SetupGameEvent;
 import com.brightwaters.deception.repository.h2.EventQueueRepository;
 import com.brightwaters.deception.repository.h2.GameStateRepository;
@@ -73,7 +76,13 @@ public class EventController {
     // all players call this every 1s!
     @GetMapping(value="/gameState/{gameId}/{playerName}")
     public PublicGameState getCurrentGameState(@PathVariable("gameId") String s, @PathVariable("playerName") String playerName) {
-        UUID gameId = UUID.fromString(s);
+        UUID gameId;
+        try {
+            gameId = UUID.fromString(s);
+        } catch (Exception e) {
+            return null;
+        }
+        
         GameState gameStateJson = gameRepos.findByGameId(gameId);
         ObjectMapper mapper = new ObjectMapper();
 
@@ -96,6 +105,100 @@ public class EventController {
         // System.out.println(new Timestamp(System.currentTimeMillis()) + " | Sending gameId: " + gameId + " to player: " + playerName);
         return publicGameState;
     }
+
+    // reveal the current players role
+    @GetMapping(value="/revealRole/{gameId}/{playerName}")
+    public String revealRole(@PathVariable("gameId") String s, @PathVariable("playerName") String playerName) {
+        
+        UUID gameId;
+        try {
+            gameId = UUID.fromString(s);
+        } catch (Exception e) {
+            return null;
+        }
+        
+        GameState gameStateJson = gameRepos.findByGameId(gameId);
+        ObjectMapper mapper = new ObjectMapper();
+
+        // since the gamestate is stored as json we need to convert it
+        GameStateObj gameState = new GameStateObj();
+        try {
+            gameState = mapper.readValue(gameStateJson.getJsonState(), GameStateObj.class);
+        } catch (JsonMappingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (JsonProcessingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (Exception e) {
+            return null;
+        } 
+
+        // don't tell them their role if its pregame
+        if (!gameState.getPublicState().getState().equals("Pregame")
+        || !gameState.getPublicState().getState().equals("")) {
+
+            if (playerName.equals(gameState.getPublicState().getForensicScientistPlayer())) {
+                return "Forensic Scientist";
+            }
+            if (playerName.equals(gameState.getPrivateState().getMurdererPlayer())) {
+                return "Murderer";
+            }
+    
+            for (Player p : gameState.getPublicState().getPlayers()) {
+                if (p.getUsername().equals(playerName)) {
+                    return "Investigator";
+                }
+            }
+    
+            return "Spectator";
+        }
+
+        return "";
+    }
+
+    // reveal the murderer and cards
+    @GetMapping(value="/revealMurderer/{gameId}/{playerName}")
+    public RevealMurdererEvent revealMurderer(@PathVariable("gameId") String s, @PathVariable("playerName") String playerName) {
+        RevealMurdererEvent event = new RevealMurdererEvent();
+        
+        UUID gameId;
+        try {
+            gameId = UUID.fromString(s);
+        } catch (Exception e) {
+            return null;
+        }
+        
+        GameState gameStateJson = gameRepos.findByGameId(gameId);
+        ObjectMapper mapper = new ObjectMapper();
+
+        // since the gamestate is stored as json we need to convert it
+        GameStateObj gameState = new GameStateObj();
+        try {
+            gameState = mapper.readValue(gameStateJson.getJsonState(), GameStateObj.class);
+        } catch (JsonMappingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (JsonProcessingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (Exception e) {
+            return null;
+        } 
+
+     
+        if (playerName.equals(gameState.getPublicState().getForensicScientistPlayer())) {
+            event.setClueCard(gameState.getPrivateState().getMurderClueName());
+            event.setWeaponCard(gameState.getPrivateState().getMurderWeaponName());
+            event.setPlayerName(gameState.getPrivateState().getMurdererPlayer());
+            return event;
+        }
+        
+
+        return null;
+    }
+
+    // below are all single thread events
 
     // event for new player to join the game
     @GetMapping(value="/events/joinGame/{gameId}/{playerName}")
@@ -142,6 +245,49 @@ public class EventController {
             e.printStackTrace();
         }
         event.setJsonEvent(json);
+        eventRepos.save(event);
+    }
+
+    // event for a forensic player to select a hint card
+    @GetMapping(value="/events/selectHintCard/{gameId}/{playerName}/{cardType}/{cardName}/{selected}")
+    public void selectHintCard(@PathVariable("gameId") String s, @PathVariable("playerName") String playerName,
+    @PathVariable("cardType") String cardType, @PathVariable("cardName") String cardName,
+    @PathVariable("selected") int selected) {
+
+        EventQueueObj event = new EventQueueObj();
+        SelectHintCardEvent cardEvent = new SelectHintCardEvent();
+        cardEvent.setCardName(cardName.replace("%20", " "));
+        cardEvent.setCardType(cardType);
+        cardEvent.setCurrentlySelectedOption(selected);
+
+        event.setPlayer(playerName);
+        event.setGameId(UUID.fromString(s));
+        event.setEventTs(new Timestamp(System.currentTimeMillis()));
+        event.setEventType("selectCardForens");
+
+        ObjectMapper mapper = new ObjectMapper();
+        String json = "";
+        try {
+            json = mapper.writeValueAsString(cardEvent);
+        } catch (JsonProcessingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        event.setJsonEvent(json);
+        eventRepos.save(event);
+    }
+
+    // event for a forensic player to submit their hint card selection
+    @GetMapping(value="/events/submitHintCard/{gameId}/{playerName}")
+    public void submitHintCards(@PathVariable("gameId") String s, @PathVariable("playerName") String playerName) {
+
+        EventQueueObj event = new EventQueueObj();
+
+        event.setPlayer(playerName);
+        event.setGameId(UUID.fromString(s));
+        event.setEventTs(new Timestamp(System.currentTimeMillis()));
+        event.setEventType("submitCardsForens");
+
         eventRepos.save(event);
     }
 

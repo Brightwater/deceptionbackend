@@ -21,25 +21,29 @@ public class Lobby {
 
     public GameStateObj addPlayer(EventQueueObj event, GameStateObj state) {
         try {
-            Player p = new Player();
-            p.setUsername(event.getPlayer());
-            p.setPlayerNumber(state.getPublicState().getPlayerCount() + 1);
-            state.getPublicState().setPlayerCount(state.getPublicState().getPlayerCount() + 1);
-            p.setWeaponCards(new ArrayList<WeaponCard>());
-            p.setClueCards(new ArrayList<ClueCard>());
-            PlayerVoted pVoted= new PlayerVoted();
-            pVoted.setVoted(false);
-            p.setVoted(pVoted);
-            ArrayList<Player> players = state.getPublicState().getPlayers();
-            for (Player player : players) {
-                if (player.getUsername().equals(event.getPlayer())) {
-                    return null;
+            if (state.getPublicState().getState() == null) {
+                Player p = new Player();
+                p.setUsername(event.getPlayer());
+                p.setPlayerNumber(state.getPublicState().getPlayerCount() + 1);
+                state.getPublicState().setPlayerCount(state.getPublicState().getPlayerCount() + 1);
+                p.setWeaponCards(new ArrayList<WeaponCard>());
+                p.setClueCards(new ArrayList<ClueCard>());
+                PlayerVoted pVoted= new PlayerVoted();
+                pVoted.setVoted(false);
+                p.setVoted(pVoted);
+                ArrayList<Player> players = state.getPublicState().getPlayers();
+                for (Player player : players) {
+                    if (player.getUsername().equals(event.getPlayer())) {
+                        return null;
+                    }
                 }
+                players.add(p);
+                state.getPublicState().setPlayers(players);
+        
+                return state;
             }
-            players.add(p);
-            state.getPublicState().setPlayers(players);
-    
-            return state;
+            return null; 
+            
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -102,10 +106,12 @@ public class Lobby {
                 // give the players the stated card number (4-9)
                 for (int i = 0; i < state.getPublicState().getCardCount(); i++) {
                     ClueCard clueCard = state.getPrivateState().getClueCardsDeck().get(0);
+                    clueCard.setBelongsTo(player.getUsername());
                     clueCards.add(clueCard);
                     state.getPrivateState().getClueCardsDeck().remove(clueCard);
 
                     WeaponCard weaponCard = state.getPrivateState().getWeaponCardsDeck().get(0);
+                    weaponCard.setBelongsTo(player.getUsername());
                     weaponCards.add(weaponCard);
                     state.getPrivateState().getWeaponCardsDeck().remove(weaponCard);
 
