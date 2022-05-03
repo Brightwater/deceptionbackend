@@ -25,6 +25,7 @@ public class Game {
     public GameStateObj selectCards(EventQueueObj event, GameStateObj state) {
         try {
             // NEED RESET VOTED
+            System.out.println(event.getJsonEvent());
 
             ArrayList<Player> ps = state.getPublicState().getPlayers();
             Player player = null;
@@ -74,6 +75,8 @@ public class Game {
                 e.printStackTrace();
             } 
 
+            System.out.println(selectCard.getClueCard());
+
             // all this to validate murderer cards...
             for (Player p : ps) {
                 if (p.getUsername().equals(event.getPlayer())) {
@@ -103,10 +106,10 @@ public class Game {
             player.getVoted().setVoted(true);
             state.getPrivateState().setSubmittedCardsCount(state.getPrivateState().getSubmittedCardsCount() + 1);
             state.getPrivateState().setMurderClueName(selectCard.getClueCard());
-            state.getPrivateState().setMurderClueName(selectCard.getWeaponCard());
+            state.getPrivateState().setMurderWeaponName(selectCard.getWeaponCard());
 
-            System.out.println(state.getPrivateState().getMurderClueName());
-
+            System.out.println("MURDER WEAPON " + state.getPrivateState().getMurderClueName());
+            System.out.println("MURDER CLUE " + state.getPrivateState().getMurderClueName());
             return state;
         } catch (Exception e) {
             e.printStackTrace();
@@ -140,6 +143,7 @@ public class Game {
                 state.getPublicState().setSelectedDeathMethod(-1);
                 state.getPublicState().setSelectedLocation(-1);
                 state.getPublicState().setState("Round1pre");
+                state.getPublicState().setRoundNumber(1);
             }
             
             return state;
@@ -226,6 +230,55 @@ public class Game {
                 }
 
                 state.getPublicState().setState("Round1");
+                return state;
+            } else {
+                return null;
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public GameStateObj endRound(EventQueueObj event, GameStateObj state) {
+        try {
+            if (state.getPublicState().getState().equals("Round1") 
+            && event.getPlayer().equals(state.getPublicState().getForensicScientistPlayer()) 
+            && state.getPublicState().getRoundNumber() < 4) {
+                // location card selected
+                if (event.getJsonEvent().equals("Location of Crime")) {
+                    // remove the old locations
+                    state.getPublicState().setLocations(new ArrayList<>());
+                    state.getPublicState().setSelectedLocation(-1);
+
+                    // load new locations
+                    for (int i = 0; i < 6; i++) {
+                        Location location = state.getPrivateState().getLocationDeck().get(0);
+                        state.getPrivateState().getLocationDeck().remove(location);
+                        state.getPublicState().getLocations().add(location.getName());
+                    }
+                }
+                // hint card selected
+                else {
+                    for (HintCard hintCard : state.getPublicState().getHintCardsInPlay()) {
+                        // get a new hint card and replace the original one with it
+                        if (hintCard.getName().equals(event.getJsonEvent())) {
+                            HintCard newCard = state.getPrivateState().getHintCardsDeck().get(0);
+                            state.getPrivateState().getHintCardsDeck().remove(newCard);
+                            hintCard.setCurrentlySelectedOption(-1);
+
+                            hintCard.setId(newCard.getId());
+                            hintCard.setName(newCard.getName());
+                            hintCard.setOptions(newCard.getOptions());
+                            hintCard.setTags(newCard.getTags());
+                        
+                            break;
+                        }
+                    }
+                }
+
+                state.getPublicState().setState("Round1post");
                 return state;
             } else {
                 return null;

@@ -106,6 +106,15 @@ public class QueueProcessor extends Thread {
                         saveGameState(gameState);
                         System.out.println(event.getEventTs() + "| EVENT " + event.getEventType() + " for player " + event.getPlayer());
                     }
+                    else if (event.getEventType().equals("endRound")) {
+                        GameStateObj gameState = serializeGameState(event.getGameId());
+                        gameState = game.endRound(event, gameState);
+                        if (gameState == null) {
+                            continue;
+                        }
+                        saveGameState(gameState);
+                        System.out.println(event.getEventTs() + "| EVENT " + event.getEventType() + " for player " + event.getPlayer());
+                    }
                     else {
                         System.out.println(event.getEventTs() + "| EVENT " + event.getEventType());
                     }

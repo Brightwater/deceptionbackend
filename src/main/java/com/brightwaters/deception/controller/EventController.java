@@ -228,6 +228,8 @@ public class EventController {
     @PathVariable("clueCard") String clueCard, @PathVariable("weaponCard") String weaponCard) {
         EventQueueObj event = new EventQueueObj();
         SelectCardEvent cardEvent = new SelectCardEvent();
+        System.out.println("WEAP " + weaponCard);
+        System.out.println("CLUE " + clueCard);
         cardEvent.setClueCard(clueCard);
         cardEvent.setWeaponCard(weaponCard);
 
@@ -287,6 +289,22 @@ public class EventController {
         event.setGameId(UUID.fromString(s));
         event.setEventTs(new Timestamp(System.currentTimeMillis()));
         event.setEventType("submitCardsForens");
+
+        eventRepos.save(event);
+    }
+
+    // event for a forensic player end the current round
+    @GetMapping(value="/events/endRound/{gameId}/{playerName}/{cardName}")
+    public void endRound(@PathVariable("gameId") String s, @PathVariable("playerName") String playerName, 
+                         @PathVariable("cardName") String cardName) {
+
+        EventQueueObj event = new EventQueueObj();
+
+        event.setPlayer(playerName);
+        event.setGameId(UUID.fromString(s));
+        event.setEventTs(new Timestamp(System.currentTimeMillis()));
+        event.setEventType("endRound");
+        event.setJsonEvent(cardName);
 
         eventRepos.save(event);
     }

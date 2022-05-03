@@ -17,6 +17,7 @@ public class PublicGameState {
     private String state;
     private int selectedLocation;
     private int selectedDeathMethod;
+    private int roundNumber;
     
     public UUID getGameId() {
         return gameId;
@@ -83,6 +84,12 @@ public class PublicGameState {
     }
     public void setSelectedDeathMethod(int selectedDeathMethod) {
         this.selectedDeathMethod = selectedDeathMethod;
+    }
+    public int getRoundNumber() {
+        return roundNumber;
+    }
+    public void setRoundNumber(int roundNumber) {
+        this.roundNumber = roundNumber;
     }
     
     
