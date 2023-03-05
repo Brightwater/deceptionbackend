@@ -1,5 +1,6 @@
 package com.brightwaters.deception.GameControl;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 
 import com.brightwaters.deception.model.h2.EventQueueObj;
@@ -11,14 +12,19 @@ import com.brightwaters.deception.model.postgres.ClueCard;
 import com.brightwaters.deception.model.postgres.HintCard;
 import com.brightwaters.deception.model.postgres.Location;
 import com.brightwaters.deception.model.postgres.WeaponCard;
+import com.brightwaters.deception.repository.h2.EventQueueRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class Game {
+
+    @Autowired
+    EventQueueRepository eventRepos;
 
     // accept the players card selection
     // for the murderer set the murder cards
@@ -156,7 +162,7 @@ public class Game {
 
     public GameStateObj round1PreSelectHint(EventQueueObj event, GameStateObj state) {
         try {
-            if (state.getPublicState().getState().equals("Round1pre") 
+            if ((state.getPublicState().getState().equals("Round1pre") || state.getPublicState().getState().equals("Round1post"))
             && event.getPlayer().equals(state.getPublicState().getForensicScientistPlayer())) {
                 
                 ObjectMapper mapper = new ObjectMapper();
@@ -218,7 +224,7 @@ public class Game {
 
     public GameStateObj round1PreSubmitHint(EventQueueObj event, GameStateObj state) {
         try {
-            if (state.getPublicState().getState().equals("Round1pre") 
+            if ((state.getPublicState().getState().equals("Round1pre") || state.getPublicState().getState().equals("Round1post")) 
             && event.getPlayer().equals(state.getPublicState().getForensicScientistPlayer())) {
                 for (HintCard hintCard : state.getPublicState().getHintCardsInPlay()) {
                     if (hintCard.getCurrentlySelectedOption() == -1) {
@@ -229,6 +235,7 @@ public class Game {
                     return null;
                 }
 
+                state.getPublicState().setUpdatedCard(null);
                 state.getPublicState().setState("Round1");
                 return state;
             } else {
@@ -246,39 +253,108 @@ public class Game {
             if (state.getPublicState().getState().equals("Round1") 
             && event.getPlayer().equals(state.getPublicState().getForensicScientistPlayer()) 
             && state.getPublicState().getRoundNumber() < 4) {
+                if (event.getJsonEvent().equals("Cause of Death")) {
+                    return null;
+                }
                 // location card selected
                 if (event.getJsonEvent().equals("Location of Crime")) {
                     // remove the old locations
                     state.getPublicState().setLocations(new ArrayList<>());
                     state.getPublicState().setSelectedLocation(-1);
 
-                    // load new locations
-                    for (int i = 0; i < 6; i++) {
-                        Location location = state.getPrivateState().getLocationDeck().get(0);
-                        state.getPrivateState().getLocationDeck().remove(location);
-                        state.getPublicState().getLocations().add(location.getName());
-                    }
+                    // // load new locations
+                    // for (int i = 0; i < 6; i++) {
+                    //     Location location = state.getPrivateState().getLocationDeck().get(0);
+                    //     state.getPrivateState().getLocationDeck().remove(location);
+                    //     state.getPublicState().getLocations().add(location.getName());
+                    // }
                 }
                 // hint card selected
                 else {
                     for (HintCard hintCard : state.getPublicState().getHintCardsInPlay()) {
                         // get a new hint card and replace the original one with it
                         if (hintCard.getName().equals(event.getJsonEvent())) {
-                            HintCard newCard = state.getPrivateState().getHintCardsDeck().get(0);
-                            state.getPrivateState().getHintCardsDeck().remove(newCard);
-                            hintCard.setCurrentlySelectedOption(-1);
-
-                            hintCard.setId(newCard.getId());
-                            hintCard.setName(newCard.getName());
-                            hintCard.setOptions(newCard.getOptions());
-                            hintCard.setTags(newCard.getTags());
+                            // HintCard newCard = state.getPrivateState().getHintCardsDeck().get(0);
+                            // state.getPrivateState().getHintCardsDeck().remove(newCard);
+                            // hintCard.setCurrentlySelectedOption(-1);
+                            ArrayList<HintCard> tempCards = state.getPublicState().getHintCardsInPlay();
+                            tempCards.remove(hintCard);
+                            state.getPublicState().setHintCardsInPlay(tempCards);
+                            // hintCard.setId(newCard.getId());
+                            // hintCard.setName(newCard.getName());
+                            // hintCard.setOptions(newCard.getOptions());
+                            // hintCard.setTags(newCard.getTags());
+                            // state.getPublicState().setUpdatedCard(newCard.getName());
                         
                             break;
                         }
                     }
                 }
 
+                state.getPublicState().setRoundNumber(state.getPublicState().getRoundNumber() + 1);
                 state.getPublicState().setState("Round1post");
+
+                EventQueueObj dummyevent = new EventQueueObj();
+                dummyevent.setPlayer("");
+                dummyevent.setGameId(state.getPublicState().getGameId());
+                dummyevent.setEventTs(new Timestamp(System.currentTimeMillis()));
+                dummyevent.setEventType("waitToAddCard");
+                dummyevent.setJsonEvent(event.getJsonEvent());
+                eventRepos.save(dummyevent);
+
+                return state;
+            } else {
+                return null;
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public GameStateObj waitToAddCard(EventQueueObj event, GameStateObj state) {
+        try {
+            // allow everyone's frontend to register the old card was removed
+            try {
+                Thread.sleep(2500);
+            } catch(InterruptedException ex)
+            {
+                Thread.currentThread().interrupt();
+            }
+
+            if (state.getPublicState().getState().equals("Round1post")) {
+                if (event.getJsonEvent().equals("Cause of Death")) {
+                    return null;
+                }
+                // location card selected
+                if (event.getJsonEvent().equals("Location of Crime")) {
+                    // remove the old locations
+                    state.getPublicState().setLocations(new ArrayList<>());
+                    state.getPublicState().setSelectedLocation(-1);
+
+                    // // load new locations
+                    for (int i = 0; i < 6; i++) {
+                        Location location = state.getPrivateState().getLocationDeck().get(0);
+                        state.getPrivateState().getLocationDeck().remove(location);
+                        state.getPublicState().getLocations().add(location.getName());
+                    }
+                    state.getPublicState().setUpdatedCard("Location of Crime");
+                }
+                // hint card selected
+                else {
+                    
+                        // get a new hint card and add it
+                    
+                        HintCard newCard = state.getPrivateState().getHintCardsDeck().get(0);
+                        state.getPrivateState().getHintCardsDeck().remove(newCard);
+                        newCard.setCurrentlySelectedOption(-1);
+                        ArrayList<HintCard> tempCards = state.getPublicState().getHintCardsInPlay();
+                        tempCards.add(newCard);
+                        state.getPublicState().setHintCardsInPlay(tempCards);
+                        state.getPublicState().setUpdatedCard(newCard.getName());
+                }
+
                 return state;
             } else {
                 return null;

@@ -27,9 +27,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequestMapping("api")
 public class EventController {
     @Autowired
     private GameStateRepository gameRepos;
@@ -104,6 +106,49 @@ public class EventController {
         PublicGameState publicGameState = gameState.getPublicState();
         // System.out.println(new Timestamp(System.currentTimeMillis()) + " | Sending gameId: " + gameId + " to player: " + playerName);
         return publicGameState;
+    }
+
+    @PostMapping(value="/gameState/{gameId}/post")
+    public int postCurrentGameState(@RequestBody PublicGameState newPubState, @PathVariable("gameId") String s) {
+        UUID gameId;
+        try {
+            gameId = UUID.fromString(s);
+        } catch (Exception e) {
+            return -1;
+        }
+        
+        GameState gameStateJson = gameRepos.findByGameId(gameId);
+        ObjectMapper mapper = new ObjectMapper();
+
+        // since the gamestate is stored as json we need to convert it
+        GameStateObj gameState = new GameStateObj();
+        try {
+            gameState = mapper.readValue(gameStateJson.getJsonState(), GameStateObj.class);
+        } catch (JsonMappingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (JsonProcessingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (Exception e) {
+            return -1;
+        } 
+
+        gameState.setPublicState(newPubState);
+
+        ObjectMapper mapper2 = new ObjectMapper();
+        String json = "";
+        try {
+            json = mapper2.writeValueAsString(gameState);
+        } catch (JsonProcessingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        gameStateJson.setJsonState(json);
+        gameStateJson.setLastUpdatedTs(new Timestamp(System.currentTimeMillis()));
+        gameRepos.save(gameStateJson);
+        return 1;
     }
 
     // reveal the current players role
@@ -282,7 +327,6 @@ public class EventController {
     // event for a forensic player to submit their hint card selection
     @GetMapping(value="/events/submitHintCard/{gameId}/{playerName}")
     public void submitHintCards(@PathVariable("gameId") String s, @PathVariable("playerName") String playerName) {
-
         EventQueueObj event = new EventQueueObj();
 
         event.setPlayer(playerName);
@@ -299,7 +343,7 @@ public class EventController {
                          @PathVariable("cardName") String cardName) {
 
         EventQueueObj event = new EventQueueObj();
-
+                            System.out.println(s);
         event.setPlayer(playerName);
         event.setGameId(UUID.fromString(s));
         event.setEventTs(new Timestamp(System.currentTimeMillis()));
@@ -307,6 +351,7 @@ public class EventController {
         event.setJsonEvent(cardName);
 
         eventRepos.save(event);
+        System.out.println("Got here");
     }
 
    

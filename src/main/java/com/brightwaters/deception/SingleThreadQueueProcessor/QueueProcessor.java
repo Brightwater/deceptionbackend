@@ -107,6 +107,7 @@ public class QueueProcessor extends Thread {
                         System.out.println(event.getEventTs() + "| EVENT " + event.getEventType() + " for player " + event.getPlayer());
                     }
                     else if (event.getEventType().equals("endRound")) {
+                        System.out.println("END ROUND");
                         GameStateObj gameState = serializeGameState(event.getGameId());
                         gameState = game.endRound(event, gameState);
                         if (gameState == null) {
@@ -115,7 +116,17 @@ public class QueueProcessor extends Thread {
                         saveGameState(gameState);
                         System.out.println(event.getEventTs() + "| EVENT " + event.getEventType() + " for player " + event.getPlayer());
                     }
+                    else if (event.getEventType().equals("waitToAddCard")) {
+                        GameStateObj gameState = serializeGameState(event.getGameId());
+                        gameState = game.waitToAddCard(event, gameState);
+                        if (gameState == null) {
+                            continue;
+                        }
+                        saveGameState(gameState);
+                        System.out.println(event.getEventTs() + "| EVENT " + event.getEventType() + " for player " + event.getPlayer());
+                    }
                     else {
+                        System.out.println("Unsupported event");
                         System.out.println(event.getEventTs() + "| EVENT " + event.getEventType());
                     }
                     

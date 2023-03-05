@@ -18,6 +18,7 @@ public class PublicGameState {
     private int selectedLocation;
     private int selectedDeathMethod;
     private int roundNumber;
+    private String updatedCard;
     
     public UUID getGameId() {
         return gameId;
@@ -30,6 +31,12 @@ public class PublicGameState {
     }
     public void setForensicScientistPlayer(String forensicScientistPlayer) {
         this.forensicScientistPlayer = forensicScientistPlayer;
+    }
+    public String getUpdatedCard() {
+        return updatedCard;
+    }
+    public void setUpdatedCard(String updatedCard) {
+        this.updatedCard = updatedCard;
     }
     public int getCardCount() {
         return cardCount;

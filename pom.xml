@@ -12,16 +12,22 @@
 	<artifactId>deception</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>deception</name>
+	<packaging>jar</packaging>
 	<description>Demo project for Spring Boot</description>
 	<properties>
 		<java.version>11</java.version>
-		<start-class>com.brightwaters.deception</start-class>
+		<start-class>com.brightwaters.deception.DeceptionApplication</start-class>
 	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
+		<dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>4.3.0</version>
+        </dependency>
 		<dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jdbc</artifactId>
@@ -134,17 +140,14 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-					<excludes>
-						<exclude>
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok</artifactId>
-						</exclude>
-					</excludes>
-					<fork>true</fork>
-           			 <mainClass>${start-class}</mainClass>
-				</configuration>
+					<archive>
+						<index>true</index>
+						<manifest>
+							<mainClass>com.brightwaters.deception.DeceptionApplication</mainClass>
+						</manifest>
+					</archive>
+            	</configuration>
 			</plugin>
-			
 		</plugins>
 	</build>
 	<repositories>
